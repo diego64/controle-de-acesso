@@ -1,0 +1,57 @@
+{
+  "name": "controle-de-acesso",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API de autenticação e controle de acesso — Fastify + Mongoose + Redis",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc --noEmit && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src tests scripts --max-warnings=0 --no-error-on-unmatched-pattern",
+    "lint:fix": "eslint src tests scripts --fix --no-error-on-unmatched-pattern",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "test": "vitest run",
+    "test:unit": "vitest --project unit",
+    "test:e2e": "vitest --project e2e",
+    "test:coverage": "vitest --coverage",
+    "test:load": "k6 run tests/load/login.k6.js",
+    "seed": "tsx scripts/seed.ts",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/rate-limit": "^10.0.0",
+    "fastify": "^5.0.0",
+    "fastify-metrics": "^12.0.0",
+    "fastify-plugin": "^5.0.0",
+    "ioredis": "^5.4.1",
+    "mongoose": "^9.0.0",
+    "pino-pretty": "^11.2.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "@commitlint/prompt-cli": "^19.0.0",
+    "@eslint/js": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^10.0.0",
+    "husky": "^9.0.0",
+    "ioredis-mock": "^8.9.0",
+    "lint-staged": "^15.0.0",
+    "mongodb-memory-server": "^9.0.0",
+    "prettier": "^3.0.0",
+    "tsc-alias": "^1.8.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  }
+}

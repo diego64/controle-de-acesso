@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "pre_response": [
+      "prettier --check src/**/*.ts 2>/dev/null || true",
+      "tsc --noEmit 2>/dev/null || echo '[type-check] Erros de tipo detectados — revisar antes de commitar'"
+    ]
+  },
+  "rules": [
+    ".claude/rules/service.md",
+    ".claude/rules/controller.md",
+    ".claude/rules/repository.md",
+    ".claude/rules/schema.md",
+    ".claude/rules/error-handling.md",
+    ".claude/rules/environment.md",
+    ".claude/rules/typescript.md",
+    ".claude/rules/testing.md",
+    ".claude/rules/git.md"
+  ],
+  "docs": [
+    "docs/architecture.md",
+    "docs/database.md",
+    "docs/security.md"
+  ],
+  "secretGate": {
+    "patterns": [
+      "JWT_SECRET",
+      "MONGODB_URI",
+      "REDIS_URL",
+      "password",
+      "token",
+      "Bearer"
+    ],
+    "action": "warn"
+  },
+  "codeStyle": {
+    "formatter": "prettier",
+    "linter": "eslint",
+    "typeCheck": "tsc --noEmit"
+  }
+}

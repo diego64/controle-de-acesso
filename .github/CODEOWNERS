@@ -1,0 +1,43 @@
+# CODEOWNERS — controle-de-acesso
+#
+# Formato: <padrão>  <@usuario-ou-time>
+# Substitua @seu-usuario pelo seu GitHub username antes de commitar.
+# Substitua @seu-time pelo time do GitHub se aplicável.
+#
+# Documentação: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ─── DEFAULT: tudo que não tiver regra específica ────────────────────────
+*                               @seu-usuario
+
+# ─── CORE DE AUTENTICAÇÃO ────────────────────────────────────────────────
+# Qualquer mudança em auth exige review do owner principal
+src/modules/auth/               @seu-usuario
+src/middlewares/                @seu-usuario
+src/shared/crypto.ts            @seu-usuario
+
+# ─── MODELOS E BANCO ─────────────────────────────────────────────────────
+src/models/                     @seu-usuario
+src/plugins/mongodb.ts          @seu-usuario
+docs/database.md                @seu-usuario
+
+# ─── SEGURANÇA E JWT ─────────────────────────────────────────────────────
+src/plugins/jwt.ts              @seu-usuario
+src/plugins/redis.ts            @seu-usuario
+docs/security.md                @seu-usuario
+
+# ─── CONFIGURAÇÃO DE AMBIENTE ────────────────────────────────────────────
+src/config/                     @seu-usuario
+.env.example                    @seu-usuario
+
+# ─── INFRAESTRUTURA E CI ─────────────────────────────────────────────────
+infra/                          @seu-usuario
+.github/workflows/              @seu-usuario
+Dockerfile                      @seu-usuario
+
+# ─── DOCUMENTAÇÃO E CONTEXTO DO AGENTE ───────────────────────────────────
+CLAUDE.md                       @seu-usuario
+docs/                           @seu-usuario
+.claude/rules/                  @seu-usuario
+
+# ─── VERCEL ENTRY POINT ──────────────────────────────────────────────────
+api/                            @seu-usuario

@@ -1,0 +1,74 @@
+{
+  "extends": ["@commitlint/config-conventional"],
+  "rules": {
+    "type-enum": [
+      2,
+      "always",
+      ["feat", "fix", "refactor", "test", "docs", "chore", "perf", "ci"]
+    ],
+    "scope-enum": [
+      2,
+      "always",
+      ["auth", "user", "jwt", "redis", "mongodb", "config", "infra", "types", "tests"]
+    ],
+    "scope-empty": [2, "never"],
+    "subject-case": [2, "always", "lower-case"],
+    "subject-empty": [2, "never"],
+    "subject-full-stop": [2, "never", "."],
+    "subject-max-length": [2, "always", 72],
+    "header-max-length": [2, "always", 100],
+    "body-max-line-length": [2, "always", 100]
+  },
+  "prompt": {
+    "messages": {
+      "skip": "(enter para pular)",
+      "max": "máximo %d caracteres",
+      "min": "mínimo %d caracteres",
+      "emptyWarning": "campo obrigatório",
+      "upperLimitWarning": "acima do limite",
+      "lowerLimitWarning": "abaixo do limite"
+    },
+    "questions": {
+      "type": {
+        "description": "Tipo de mudança",
+        "enum": {
+          "feat":     { "description": "Nova funcionalidade",                   "title": "feat"     },
+          "fix":      { "description": "Correção de bug",                       "title": "fix"      },
+          "refactor": { "description": "Refatoração sem mudança de comportamento","title": "refactor" },
+          "test":     { "description": "Adição ou correção de testes",          "title": "test"     },
+          "docs":     { "description": "Documentação",                          "title": "docs"     },
+          "chore":    { "description": "Deps, config, manutenção",              "title": "chore"    },
+          "perf":     { "description": "Melhoria de performance",               "title": "perf"     },
+          "ci":       { "description": "Pipeline e workflows",                  "title": "ci"       }
+        }
+      },
+      "scope": {
+        "description": "Escopo afetado (auth | user | jwt | redis | mongodb | config | infra | types | tests)"
+      },
+      "subject": {
+        "description": "Descrição curta em minúsculas (máx 72 caracteres)"
+      },
+      "body": {
+        "description": "Contexto adicional — por que essa mudança? (opcional)"
+      },
+      "isBreaking": {
+        "description": "Existe breaking change?"
+      },
+      "breakingBody": {
+        "description": "Descreva o breaking change"
+      },
+      "breaking": {
+        "description": "Detalhes do breaking change"
+      },
+      "isIssueAffected": {
+        "description": "Esta mudança resolve alguma issue?"
+      },
+      "issuesBody": {
+        "description": "Adicione contexto para fechar a issue"
+      },
+      "issues": {
+        "description": "Referência da issue (ex: fix #123, closes #456)"
+      }
+    }
+  }
+}

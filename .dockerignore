@@ -1,0 +1,50 @@
+# Build output & deps
+node_modules
+dist
+coverage
+.vitest-results
+
+# Secrets & local env
+.env
+.env.*
+infra/.env
+infra/.env.*
+
+# VCS & infra
+.git
+.gitignore
+.gitleaks.toml
+.github
+.husky
+
+# Dev tooling
+.claude
+.commitlintrc.json
+.eslintrc.json
+.eslintignore
+eslint.config.js
+.lintstagedrc.json
+vitest.config.ts
+vitest.workspace.ts
+package.scripts.json
+
+# Docs
+docs
+*.md
+LICENSE
+CLAUDE.local.md
+
+# Tests
+tests
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea
+.vscode
+
+# Docker
+.dockerignore
+infra/Dockerfile
+infra/docker-compose.yml
+infra/prometheus.yml

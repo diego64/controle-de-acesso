@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 1. Lint + format nos arquivos staged
+pnpm lint-staged
+
+# 2. Type-check no projeto inteiro (não apenas staged)
+pnpm type-check
