@@ -5,6 +5,7 @@
 .env.*.local
 
 # ─── CLAUDE (contexto local, não commitar) ────────────────────────────────
+CLAUDE.md
 CLAUDE.local.md
 .claude/settings.local.json
 .claude
