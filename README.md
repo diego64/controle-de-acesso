@@ -392,14 +392,3 @@ Mais cenários e diagnose: [`docs/runbooks/`](./docs/runbooks/).
 ## Licença
 
 [ISC](./LICENSE)
-
----
-
-## Para contribuir
-
-1. Branch a partir de `main`: `git checkout -b feat/<escopo>/<descricao>`.
-2. `pnpm install` ativa husky → pre-commit roda `lint-staged + type-check`; commit-msg valida formato.
-3. PR com [`/pr-describe`](./docs/runbooks/README.md) preencho descrição padronizada.
-4. CI roda em GitHub Actions (`.github/workflows/`).
-
-Convenções completas em [`CLAUDE.md`](./CLAUDE.md).
