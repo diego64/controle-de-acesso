@@ -7,6 +7,7 @@
 # ─── CLAUDE (contexto local, não commitar) ────────────────────────────────
 CLAUDE.local.md
 .claude/settings.local.json
+.claude
 
 # ─── DEPENDÊNCIAS ─────────────────────────────────────────────────────────
 node_modules/
