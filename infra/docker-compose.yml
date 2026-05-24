@@ -23,6 +23,7 @@ services:
       HASH_ITERATIONS: ${HASH_ITERATIONS:-100000}
       HASH_KEYLEN: ${HASH_KEYLEN:-64}
       HASH_DIGEST: ${HASH_DIGEST:-sha512}
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
 
   mongodb:
     image: mongo:7

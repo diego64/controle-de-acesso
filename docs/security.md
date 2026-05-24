@@ -2,48 +2,48 @@
 
 ## Modelo de ameaça (resumido)
 
-| Ameaça | Mitigação |
-|---|---|
-| Brute force em login | Rate limiting por IP via @fastify/rate-limit |
-| Roubo de senha em trânsito | HTTPS obrigatório (Vercel garante) |
-| Vazamento de hash no response | `select: false` no Mongoose + transform no toJSON |
-| Token JWT roubado | Expiração curta (15min) + blocklist Redis por jti |
-| Enumeração de usuários | Mensagem genérica em login (não diferenciar email/senha) |
-| Injeção de dados | Validação obrigatória via JSON Schema Fastify + Zod |
-| Headers HTTP inseguros | @fastify/helmet em todos os requests |
-| CORS aberto | Origem explícita em produção — sem `origin: '*'` |
+| Ameaça                        | Mitigação                                                                                                                                            |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Brute force em login          | Rate limiting por IP via @fastify/rate-limit                                                                                                         |
+| Roubo de senha em trânsito    | HTTPS obrigatório (Vercel garante)                                                                                                                   |
+| Vazamento de hash no response | `select: false` no Mongoose + transform no toJSON                                                                                                    |
+| Token JWT roubado             | Expiração curta (15min) + blocklist Redis por jti                                                                                                    |
+| Enumeração de usuários        | Mensagem genérica em login (não diferenciar email/senha)                                                                                             |
+| Injeção de dados              | Validação obrigatória via JSON Schema Fastify + Zod                                                                                                  |
+| Headers HTTP inseguros        | @fastify/helmet — registrado em `src/app.ts` (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy etc.)                              |
+| CORS aberto                   | @fastify/cors — registrado quando `CORS_ORIGIN` está definido; aceita lista CSV de origens explícitas; em produção é obrigatório (sem `origin: '*'`) |
 
 ## Hashing de senha: PBKDF2
 
 ```typescript
 // src/shared/crypto.ts
 
-import { randomBytes, pbkdf2Sync } from 'node:crypto'
-import { env } from '@/config/env'
+import { randomBytes, pbkdf2Sync } from "node:crypto";
+import { env } from "@/config/env";
 
 export function hashPassword(plain: string): string {
-  const salt = randomBytes(32).toString('hex')
+  const salt = randomBytes(32).toString("hex");
   const hash = pbkdf2Sync(
     plain,
     salt,
-    env.HASH_ITERATIONS,   // 100_000
-    env.HASH_KEYLEN,       // 64
-    env.HASH_DIGEST        // 'sha512'
-  ).toString('hex')
-  return `${hash}:${salt}`
+    env.HASH_ITERATIONS, // 100_000
+    env.HASH_KEYLEN, // 64
+    env.HASH_DIGEST, // 'sha512'
+  ).toString("hex");
+  return `${hash}:${salt}`;
 }
 
 export function verifyPassword(plain: string, stored: string): boolean {
-  const [hash, salt] = stored.split(':')
+  const [hash, salt] = stored.split(":");
   const attempt = pbkdf2Sync(
     plain,
     salt,
     env.HASH_ITERATIONS,
     env.HASH_KEYLEN,
-    env.HASH_DIGEST
-  ).toString('hex')
+    env.HASH_DIGEST,
+  ).toString("hex");
   // timingSafeEqual para evitar timing attack
-  return timingSafeEqual(Buffer.from(attempt), Buffer.from(hash))
+  return timingSafeEqual(Buffer.from(attempt), Buffer.from(hash));
 }
 ```
 
@@ -77,15 +77,15 @@ aceitável.
 
 ```typescript
 // Ao fazer logout:
-const { jti, exp } = request.user
-const ttl = exp - Math.floor(Date.now() / 1000)
+const { jti, exp } = request.user;
+const ttl = exp - Math.floor(Date.now() / 1000);
 if (ttl > 0) {
-  await redis.set(`blocklist:${jti}`, '1', { EX: ttl })
+  await redis.set(`blocklist:${jti}`, "1", { EX: ttl });
 }
 
 // No middleware de autenticação:
-const blocked = await redis.get(`blocklist:${jti}`)
-if (blocked) throw new AppError('TOKEN_REVOKED', 401)
+const blocked = await redis.get(`blocklist:${jti}`);
+if (blocked) throw new AppError("TOKEN_REVOKED", 401);
 ```
 
 ## Rate limiting
