@@ -1,0 +1,353 @@
+{
+  "info": {
+    "_postman_id": "controle-de-acesso-collection-001",
+    "name": "Controle de Acesso",
+    "description": "Coleção para testes manuais da API de autenticação + controle de acesso.\n\n**Pré-requisitos:**\n- App rodando em `http://localhost:3000` (via `pnpm dev` ou `docker compose -f infra/docker-compose.yml up -d`).\n- Mongo e Redis acessíveis (idem).\n- **Banco populado via `pnpm seed`** — cria 1 ADMINISTRADOR e 1 USUARIO. As variáveis abaixo já vêm com as credenciais geradas pelo seed.\n\n**Fluxo recomendado (com seed):**\n1. `Health/Live` e `Health/Ready` — sanity check.\n2. `Auth/Login` — autentica como USUARIO (`usuario@local.dev`) — token salvo automaticamente.\n3. `Auth/Me` — confirma identidade + role `USUARIO`.\n4. `Users/List All (admin-only)` — espera **403 FORBIDDEN** (USUARIO não pode listar).\n5. `Auth/Login (as ADMIN)` — re-autentica como ADMINISTRADOR (`admin@local.dev`) — sobrescreve o token.\n6. `Users/List All (admin-only)` — agora retorna **200** com os 2 usuários.\n7. `Auth/Logout` — revoga o token corrente.\n8. `Auth/Me (após logout)` — confirma `401 TOKEN_REVOKED`.\n\n**Fluxo alternativo (testar registro):**\n- `Auth/Register` — cria um novo usuário (`testEmail` por default aponta para o seed; se você quer testar registro fresh, mude `testEmail` em Variables para algo inédito antes de chamar). Retorna 409 se email já existir (seed user).\n\n**Variáveis ajustáveis** (Variables tab):\n- `baseUrl` — URL da app.\n- `testEmail` / `testPassword` / `testFirstName` / `testLastName` — credenciais do USUARIO do seed (default para Login + Register).\n- `adminEmail` / `adminPassword` — credenciais do ADMINISTRADOR do seed (usadas pelo `Auth/Login (as ADMIN)`).\n- `accessToken` — preenchido pelo test script de qualquer Login.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "testEmail", "value": "usuario@local.dev", "type": "string" },
+    { "key": "testPassword", "value": "usuario-local-dev-2026", "type": "string" },
+    { "key": "testFirstName", "value": "Usuário", "type": "string" },
+    { "key": "testLastName", "value": "Comum", "type": "string" },
+    { "key": "adminEmail", "value": "admin@local.dev", "type": "string" },
+    { "key": "adminPassword", "value": "admin-local-dev-2026", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Live",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/live",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "live"]
+            },
+            "description": "Liveness probe — 200 sempre que o processo Node responder. Sem I/O."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('status === ok', () => pm.expect(json.status).to.eql('ok'));",
+                  "pm.test('timestamp presente', () => pm.expect(json.timestamp).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Ready",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "ready"]
+            },
+            "description": "Readiness probe — 200 se Mongo e Redis respondem ao ping; 503 se algum falha."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 ou 503', () => pm.expect([200, 503]).to.include(pm.response.code));",
+                  "const json = pm.response.json();",
+                  "pm.test('services.mongodb presente', () => pm.expect(json.services.mongodb).to.be.oneOf(['ok', 'down']));",
+                  "pm.test('services.redis presente', () => pm.expect(json.services.redis).to.be.oneOf(['ok', 'down']));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"firstName\": \"{{testFirstName}}\",\n  \"lastName\": \"{{testLastName}}\"\n}"
+            },
+            "description": "Cria um novo usuário com nome, sobrenome e role default `USUARIO`.\n\n- 201: criado.\n- 409: email duplicado (acontece se `testEmail` já existe — seed cria `usuario@local.dev`).\n- 422: payload inválido ou campos extras.\n\nRate-limit: 5/min por IP.\n\nPara testar registro fresh, mude `testEmail` em Variables para algo inédito."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201 (ou 409 se já registrado)', () => pm.expect([201, 409]).to.include(pm.response.code));",
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('Retorna DTO completo', () => {",
+                  "    pm.expect(json.id).to.be.a('string');",
+                  "    pm.expect(json.email).to.eql(pm.collectionVariables.get('testEmail'));",
+                  "    pm.expect(json.firstName).to.eql(pm.collectionVariables.get('testFirstName'));",
+                  "    pm.expect(json.lastName).to.eql(pm.collectionVariables.get('testLastName'));",
+                  "    pm.expect(json.role).to.eql('USUARIO');",
+                  "    pm.expect(json.createdAt).to.be.a('string');",
+                  "  });",
+                  "  pm.test('Não vaza passwordHash', () => pm.expect(json.passwordHash).to.be.undefined);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "description": "Autentica com `testEmail` / `testPassword` (default: USUARIO do seed). Retorna 200 com `accessToken` (JWT) + `expiresIn`. O test script salva `accessToken` na variável da coleção.\n\n401 INVALID_CREDENTIALS para email/senha errados (mesma resposta — anti-enumeração). Rate-limit: 10/min por IP."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Retorna accessToken (JWT)', () => {",
+                  "  pm.expect(json.accessToken).to.be.a('string');",
+                  "  pm.expect(json.accessToken.split('.')).to.have.lengthOf(3);",
+                  "});",
+                  "pm.test('Retorna expiresIn', () => pm.expect(json.expiresIn).to.be.a('string'));",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  console.log('accessToken (USUARIO) salvo:', json.accessToken.slice(0, 16) + '...');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Login (as ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "description": "Autentica com as credenciais do ADMINISTRADOR semeadas (`admin@local.dev` / `admin-local-dev-2026`).\n\nSobrescreve `accessToken` da coleção — `Users/List All` em seguida retorna 200 (em vez de 403)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Retorna accessToken (JWT)', () => {",
+                  "  pm.expect(json.accessToken).to.be.a('string');",
+                  "  pm.expect(json.accessToken.split('.')).to.have.lengthOf(3);",
+                  "});",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  console.log('accessToken (ADMINISTRADOR) salvo:', json.accessToken.slice(0, 16) + '...');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Me (protegida)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Retorna dados do usuário autenticado (id, email, firstName, lastName, role, createdAt). Exige Bearer válido.\n\nO email/role esperado depende de qual Login você rodou por último:\n- Login → USUARIO seed.\n- Login (as ADMIN) → ADMINISTRADOR seed.\n\n- 200: ok.\n- 401 TOKEN_MISSING / TOKEN_INVALID / TOKEN_REVOKED.\n- 403 TOKEN_EXPIRED."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Tem campos esperados', () => {",
+                  "  pm.expect(json.id).to.be.a('string');",
+                  "  pm.expect(json.email).to.be.a('string');",
+                  "  pm.expect(json.firstName).to.be.a('string');",
+                  "  pm.expect(json.lastName).to.be.a('string');",
+                  "  pm.expect(json.role).to.be.oneOf(['USUARIO', 'ADMINISTRADOR']);",
+                  "});",
+                  "pm.test('Não vaza passwordHash', () => pm.expect(json.passwordHash).to.be.undefined);"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Revoga o token atual (adiciona o `jti` à blocklist Redis com TTL = exp - now).\n\nResposta: 204 sem corpo. Próximo request com o mesmo token retorna 401 TOKEN_REVOKED."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 204', () => pm.response.to.have.status(204));",
+                  "pm.test('Body vazio', () => pm.expect(pm.response.text()).to.be.empty);"
+                ]
+              }
+            }
+          ],
+          "response": []
+        },
+        {
+          "name": "Me (após logout — espera 401 TOKEN_REVOKED)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Sanity check do logout. Rodar APÓS `Auth/Logout` com o mesmo token. Espera 401 `error: TOKEN_REVOKED`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test('error === TOKEN_REVOKED', () => pm.expect(json.error).to.eql('TOKEN_REVOKED'));"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List All (admin-only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ""]
+            },
+            "description": "Lista todos os usuários (id, email, firstName, lastName, role, createdAt, updatedAt).\n\nExige role `ADMINISTRADOR`.\n\n- 200: array de usuários ordenado por `createdAt desc`.\n- 401 TOKEN_MISSING: sem header.\n- 403 FORBIDDEN: token válido mas role insuficiente.\n- 401 TOKEN_REVOKED: user removido do DB entre login e request.\n\nPara obter um token de ADMINISTRADOR, use `Auth/Login (as ADMIN)`."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 ou 403 (depende da role do user logado)', () => pm.expect([200, 403]).to.include(pm.response.code));",
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('Retorna array', () => pm.expect(json).to.be.an('array'));",
+                  "  pm.test('Cada item tem campos esperados', () => {",
+                  "    json.forEach((u) => {",
+                  "      pm.expect(u.id).to.be.a('string');",
+                  "      pm.expect(u.email).to.be.a('string');",
+                  "      pm.expect(u.firstName).to.be.a('string');",
+                  "      pm.expect(u.lastName).to.be.a('string');",
+                  "      pm.expect(u.role).to.be.oneOf(['USUARIO', 'ADMINISTRADOR']);",
+                  "      pm.expect(u.passwordHash).to.be.undefined;",
+                  "    });",
+                  "  });",
+                  "} else if (pm.response.code === 403) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('error === FORBIDDEN', () => pm.expect(json.error).to.eql('FORBIDDEN'));",
+                  "  console.log('User logado não é ADMINISTRADOR. Rode `Auth/Login (as ADMIN)` para obter token admin.');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "response": []
+        }
+      ]
+    }
+  ]
+}

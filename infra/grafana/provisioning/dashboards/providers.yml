@@ -1,0 +1,26 @@
+apiVersion: 1
+
+providers:
+  - name: 'Local'
+    orgId: 1
+    folder: 'Local'
+    folderUid: 'folder-local'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/local
+      foldersFromFilesStructure: false
+
+  - name: 'Cloud'
+    orgId: 1
+    folder: 'Cloud'
+    folderUid: 'folder-cloud'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards/cloud
+      foldersFromFilesStructure: false

@@ -1,0 +1,14 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: webhook-default
+    receivers:
+      - uid: webhook-default
+        type: webhook
+        # Placeholder. Trocar via ALERT_WEBHOOK_URL em infra/.env (ngrok, Slack
+        # incoming webhook, Discord, Mattermost, custom HTTP receiver, etc).
+        settings:
+          url: ${ALERT_WEBHOOK_URL}
+          httpMethod: POST
+        disableResolveMessage: false

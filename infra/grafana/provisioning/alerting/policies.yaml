@@ -1,0 +1,20 @@
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: webhook-default
+    group_by:
+      - grafana_folder
+      - alertname
+      - severity
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 4h
+    routes:
+      # Critical → notifica mais rápido e repete a cada 1h
+      - receiver: webhook-default
+        matchers:
+          - severity = critical
+        group_wait: 10s
+        group_interval: 1m
+        repeat_interval: 1h

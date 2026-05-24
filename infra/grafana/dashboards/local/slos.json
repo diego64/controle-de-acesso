@@ -1,0 +1,258 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "schemaVersion": 38,
+  "style": "dark",
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SLOs",
+  "uid": "local-slos",
+  "version": 1,
+  "weekStart": "",
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Disponibilidade (janela do período)",
+      "datasource": { "type": "prometheus", "uid": "prom-local" },
+      "gridPos": { "x": 0, "y": 3, "w": 6, "h": 5 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 3,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "orange", "value": 99 }, { "color": "green", "value": 99.5 }] },
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "avg_over_time(up{job=\"controle-de-acesso\"}[$__range]) * 100", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-local" } }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Latência p95 /auth/login",
+      "datasource": { "type": "prometheus", "uid": "prom-local" },
+      "gridPos": { "x": 6, "y": 3, "w": 6, "h": 5 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.2 }, { "color": "red", "value": 0.3 }] },
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=\"/auth/login\"}[5m])) by (le))", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-local" } }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Latência p95 /auth/register",
+      "datasource": { "type": "prometheus", "uid": "prom-local" },
+      "gridPos": { "x": 12, "y": 3, "w": 6, "h": 5 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 3,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.35 }, { "color": "red", "value": 0.5 }] },
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=\"/auth/register\"}[5m])) by (le))", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-local" } }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Erro 5xx (janela 5m)",
+      "datasource": { "type": "prometheus", "uid": "prom-local" },
+      "gridPos": { "x": 18, "y": 3, "w": 6, "h": 5 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 3,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.3 }, { "color": "red", "value": 0.5 }] },
+          "noValue": "0"
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "(sum(rate(http_request_duration_seconds_count{status_code=~\"5..\"}[5m])) OR on() vector(0)) / clamp_min(sum(rate(http_request_duration_seconds_count[5m])), 1) * 100", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-local" } }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Latência p95 por rota",
+      "datasource": { "type": "prometheus", "uid": "prom-local" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "spanNulls": false },
+          "color": { "mode": "palette-classic" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.3 }] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "/auth/register" }, "properties": [{ "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.5 }] } }] }
+        ]
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] }
+      },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route))", "refId": "A", "legendFormat": "{{route}}", "datasource": { "type": "prometheus", "uid": "prom-local" } }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Request rate por rota (req/s)",
+      "datasource": { "type": "prometheus", "uid": "prom-local" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 15, "spanNulls": false, "stacking": { "mode": "normal", "group": "A" } },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] }
+      },
+      "targets": [
+        { "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (route)", "refId": "A", "legendFormat": "{{route}}", "datasource": { "type": "prometheus", "uid": "prom-local" } }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Status codes (req/s, stack)",
+      "datasource": { "type": "prometheus", "uid": "prom-local" },
+      "gridPos": { "x": 0, "y": 17, "w": 12, "h": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "spanNulls": false, "stacking": { "mode": "normal", "group": "A" } },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": "^2.." }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byRegexp", "options": "^3.." }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byRegexp", "options": "^4.." }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] },
+          { "matcher": { "id": "byRegexp", "options": "^5.." }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "targets": [
+        { "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (status_code)", "refId": "A", "legendFormat": "{{status_code}}", "datasource": { "type": "prometheus", "uid": "prom-local" } }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Taxa de erro 5xx (%)",
+      "datasource": { "type": "prometheus", "uid": "prom-local" },
+      "gridPos": { "x": 12, "y": 17, "w": 12, "h": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 3,
+          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "spanNulls": false, "thresholdsStyle": { "mode": "line" } },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.5 }] },
+          "color": { "mode": "thresholds" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "single", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "targets": [
+        { "expr": "(sum(rate(http_request_duration_seconds_count{status_code=~\"5..\"}[5m])) OR on() vector(0)) / clamp_min(sum(rate(http_request_duration_seconds_count[5m])), 1) * 100", "refId": "A", "legendFormat": "5xx %", "datasource": { "type": "prometheus", "uid": "prom-local" } }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "table",
+      "title": "Top rotas por p95 (instantâneo)",
+      "datasource": { "type": "prometheus", "uid": "prom-local" },
+      "gridPos": { "x": 0, "y": 26, "w": 24, "h": 8 },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [{ "displayName": "p95 (s)", "desc": true }],
+        "footer": { "show": false, "reducer": ["sum"], "fields": "" }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "align": "auto", "displayMode": "auto" },
+          "mappings": []
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "p95 (s)" }, "properties": [{ "id": "unit", "value": "s" }, { "id": "decimals", "value": 3 }] }
+        ]
+      },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route, method))", "refId": "A", "instant": true, "format": "table", "datasource": { "type": "prometheus", "uid": "prom-local" } }
+      ],
+      "transformations": [
+        { "id": "organize", "options": { "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true }, "indexByName": {}, "renameByName": { "Value": "p95 (s)", "route": "Rota", "method": "Método" } } }
+      ]
+    }
+  ]
+}

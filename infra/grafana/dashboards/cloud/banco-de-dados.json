@@ -1,0 +1,175 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["cloud", "banco"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Banco de Dados — Cloud",
+  "uid": "cloud-banco-de-dados",
+  "version": 1,
+  "weekStart": "",
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Setup pendente",
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
+      "options": {
+        "mode": "markdown",
+        "content": "### Para popular este dashboard\n\n1. **Datasource** — configure `GRAFANA_CLOUD_PROMETHEUS_URL` (ver `infra/grafana/provisioning/datasources/prometheus.yml`).\n2. **MongoDB Atlas** — habilite o **Atlas Prometheus integration** (Project Settings → Integrations → Prometheus) e configure scrape no Prometheus cloud:\n   ```yaml\n   - job_name: mongodb-atlas\n     scrape_interval: 60s\n     basic_auth:\n       username: ${ATLAS_USER}\n       password: ${ATLAS_API_KEY}\n     static_configs:\n       - targets: ['https://cloud.mongodb.com/prometheus/v1.0/groups/${ATLAS_GROUP_ID}/discovery']\n   ```\n\nQueries abaixo já assumem o naming do exporter padrão Atlas (`mongodbatlas_*`)."
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Cluster UP",
+      "datasource": { "type": "prometheus", "uid": "prom-cloud" },
+      "gridPos": { "x": 0, "y": 4, "w": 6, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "up{job=~\"mongodb.*\"}", "refId": "A", "instant": true, "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Conexões",
+      "datasource": { "type": "prometheus", "uid": "prom-cloud" },
+      "gridPos": { "x": 6, "y": 4, "w": 6, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 200 }, { "color": "red", "value": 500 }] },
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "mongodb_connections{state=\"current\"} OR mongodbatlas_process_connections", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Operações/s (rate 5m)",
+      "datasource": { "type": "prometheus", "uid": "prom-cloud" },
+      "gridPos": { "x": 12, "y": 4, "w": 6, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": { "defaults": { "unit": "ops", "noValue": "—" }, "overrides": [] },
+      "targets": [
+        { "expr": "sum(rate(mongodb_op_counters_total[5m]))", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Replication lag (s)",
+      "datasource": { "type": "prometheus", "uid": "prom-cloud" },
+      "gridPos": { "x": 18, "y": 4, "w": 6, "h": 4 },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "orientation": "horizontal",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 5 }, { "color": "red", "value": 30 }] },
+          "noValue": "—"
+        },
+        "overrides": []
+      },
+      "targets": [
+        { "expr": "max(mongodb_mongod_replset_member_replication_lag_seconds)", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Operações por tipo (rate 5m)",
+      "datasource": { "type": "prometheus", "uid": "prom-cloud" },
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 15, "spanNulls": false },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] }
+      },
+      "targets": [
+        { "expr": "rate(mongodb_op_counters_total[5m])", "refId": "A", "legendFormat": "{{type}}", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Memória do MongoDB",
+      "datasource": { "type": "prometheus", "uid": "prom-cloud" },
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 9 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 20, "spanNulls": false },
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "tooltip": { "mode": "multi", "sort": "desc" },
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+      },
+      "targets": [
+        { "expr": "mongodb_memory{type=\"resident\"}", "refId": "A", "legendFormat": "resident", "datasource": { "type": "prometheus", "uid": "prom-cloud" } },
+        { "expr": "mongodb_memory{type=\"virtual\"}", "refId": "B", "legendFormat": "virtual", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+      ]
+    }
+  ]
+}

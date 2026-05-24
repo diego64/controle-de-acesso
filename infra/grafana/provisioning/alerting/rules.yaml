@@ -1,0 +1,167 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: slo-alerts
+    folder: 'SLO Alerts'
+    interval: 1m
+    rules:
+      # ─── ADR / SLO #1: Disponibilidade ≥ 99.5% mensal ───────────────────
+      - uid: slo-availability-low
+        title: 'Disponibilidade abaixo de 99.5% (1h)'
+        condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Error
+        data:
+          - refId: A
+            relativeTimeRange: { from: 3600, to: 0 }
+            datasourceUid: prom-local
+            model:
+              editorMode: code
+              expr: 'avg_over_time(up{job="controle-de-acesso"}[1h]) * 100'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: C
+            relativeTimeRange: { from: 0, to: 0 }
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              refId: C
+              expression: A
+              conditions:
+                - evaluator: { params: [99.5], type: lt }
+                  operator: { type: and }
+                  query: { params: [C] }
+                  reducer: { params: [], type: last }
+                  type: query
+        labels:
+          severity: critical
+          slo: availability
+        annotations:
+          summary: 'Disponibilidade abaixo do SLO de 99.5%'
+          description: 'avg(up) na última 1h = {{ $values.A.Value | printf "%.3f" }}%. Target: ≥ 99.5%.'
+          runbook_url: 'docs/runbooks/slo-availability-low.md'
+
+      # ─── ADR / SLO #2: p95 /auth/login < 300ms ─────────────────────────
+      - uid: slo-login-latency-high
+        title: 'Latência p95 /auth/login > 300ms'
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prom-local
+            model:
+              editorMode: code
+              expr: 'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route="/auth/login"}[5m])) by (le))'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: C
+            relativeTimeRange: { from: 0, to: 0 }
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              refId: C
+              expression: A
+              conditions:
+                - evaluator: { params: [0.3], type: gt }
+                  operator: { type: and }
+                  query: { params: [C] }
+                  reducer: { params: [], type: last }
+                  type: query
+        labels:
+          severity: warning
+          slo: latency-login
+        annotations:
+          summary: 'p95 de /auth/login violando SLO (>300ms)'
+          description: 'p95 nos últimos 5m = {{ $values.A.Value | printf "%.3f" }}s. Target: < 0.300s.'
+          runbook_url: 'docs/runbooks/slo-login-latency-high.md'
+
+      # ─── ADR / SLO #3: p95 /auth/register < 500ms ──────────────────────
+      - uid: slo-register-latency-high
+        title: 'Latência p95 /auth/register > 500ms'
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prom-local
+            model:
+              editorMode: code
+              expr: 'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route="/auth/register"}[5m])) by (le))'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: C
+            relativeTimeRange: { from: 0, to: 0 }
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              refId: C
+              expression: A
+              conditions:
+                - evaluator: { params: [0.5], type: gt }
+                  operator: { type: and }
+                  query: { params: [C] }
+                  reducer: { params: [], type: last }
+                  type: query
+        labels:
+          severity: warning
+          slo: latency-register
+        annotations:
+          summary: 'p95 de /auth/register violando SLO (>500ms)'
+          description: 'p95 nos últimos 5m = {{ $values.A.Value | printf "%.3f" }}s. Target: < 0.500s.'
+          runbook_url: 'docs/runbooks/slo-register-latency-high.md'
+
+      # ─── ADR / SLO #4: Taxa de erro 5xx < 0.5% ─────────────────────────
+      - uid: slo-error-rate-high
+        title: 'Taxa de erro 5xx > 0.5%'
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prom-local
+            model:
+              editorMode: code
+              expr: '(sum(rate(http_request_duration_seconds_count{status_code=~"5.."}[5m])) OR on() vector(0)) / clamp_min(sum(rate(http_request_duration_seconds_count[5m])), 1) * 100'
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: C
+            relativeTimeRange: { from: 0, to: 0 }
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              refId: C
+              expression: A
+              conditions:
+                - evaluator: { params: [0.5], type: gt }
+                  operator: { type: and }
+                  query: { params: [C] }
+                  reducer: { params: [], type: last }
+                  type: query
+        labels:
+          severity: critical
+          slo: error-rate
+        annotations:
+          summary: 'Taxa de erro 5xx acima do SLO (>0.5%)'
+          description: '5xx ratio nos últimos 5m = {{ $values.A.Value | printf "%.3f" }}%. Target: < 0.5%.'
+          runbook_url: 'docs/runbooks/slo-error-rate-high.md'
