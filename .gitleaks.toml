@@ -11,32 +11,70 @@ useDefault = true
 [[rules]]
 id = "jwt-secret-env"
 description = "JWT_SECRET hardcoded"
+# Match real secrets (alphanumeric + base64-ish), NOT template literals ${VAR}
+# nem valores que comecem com prefixos óbvios de teste.
 regex = '''JWT_SECRET\s*=\s*['"]?[A-Za-z0-9+/=_\-]{8,}['"]?'''
 tags = ["secret", "jwt"]
+[rules.allowlist]
+regexTarget = "match"
+regexes = [
+  # Templates Docker Compose / shell
+  '''\$\{[A-Z_]+\}''',
+  # Fixtures de teste com prefixo claro
+  '''JWT_SECRET\s*=\s*['"]?test-''',
+  '''JWT_SECRET\s*=\s*['"]?ci-''',
+  '''JWT_SECRET\s*=\s*['"]?trocar-''',
+  '''JWT_SECRET\s*=\s*['"]?changeme''',
+]
 
 [[rules]]
 id = "mongodb-uri-with-credentials"
-description = "MongoDB URI com credenciais"
-regex = '''mongodb(\+srv)?://[^:]+:[^@]+@'''
+description = "MongoDB URI com credenciais reais (exclui templates ${VAR})"
+# Caracteres `$`, `{`, `}` no negated set rejeitam template literals.
+regex = '''mongodb(\+srv)?://[^:${}\s]+:[^@${}\s]+@'''
 tags = ["secret", "database"]
+[rules.allowlist]
+regexTarget = "match"
+regexes = [
+  # Placeholders explícitos (não são secrets reais)
+  '''mongodb://[^:]*:trocar-antes-de-subir@''',
+  '''mongodb://[^:]*:changeme[^@]*@''',
+  '''mongodb://[^:]*:placeholder@''',
+]
 
 # ─── ALLOWLIST GLOBAL ─────────────────────────────────────────────────────
 
 [allowlist]
-description = "Arquivos que podem conter valores de exemplo"
+description = "Arquivos que podem conter valores de exemplo, fixtures e templates"
 paths = [
-  ".env.example",
-  "CLAUDE.md",
-  "docs/",
-  ".claude/",
-  "README.md"
+  # Templates de env (sem valores reais)
+  '''\.env\.example$''',
+  '''infra/\.env\.example$''',
+  # Documentação (pode mostrar exemplos didáticos)
+  '''CLAUDE\.md$''',
+  '''README\.md$''',
+  '''^docs/''',
+  '''^\.claude/''',
+  # Testes — fixtures determinísticas (test-secret-*, senha-*, etc.)
+  '''^tests/''',
+  # Seed de desenvolvimento (credenciais fake locais)
+  '''^scripts/seed\.ts$''',
+  # Postman collection (valores de teste manual)
+  '''^controle-de-acesso\.postman_collection\.json$''',
+  # docker-compose tem ${VAR} templates já cobertos pelo regex,
+  # mas allowlist garante zero falso-positivo se rule mudar.
+  '''^infra/docker-compose\.yml$''',
 ]
 regexTarget = "line"
 regexes = [
-  # Valores placeholder explícitos
+  # Valores placeholder universalmente reconhecidos
   '''mude-isso-em-producao''',
   '''sua-uri-aqui''',
+  '''trocar-antes-de-subir''',
+  '''changeme''',
+  '''placeholder''',
   '''example\.com''',
-  # Valores de teste no CI (identificáveis)
+  # Valores de teste no CI (identificáveis pelo prefixo)
   '''ci-test-secret''',
+  '''test-secret''',
 ]

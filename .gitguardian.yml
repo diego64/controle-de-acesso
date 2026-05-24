@@ -1,0 +1,36 @@
+# GitGuardian config — espelha o .gitleaks.toml para o serviço SaaS
+# Documentação: https://docs.gitguardian.com/
+# Tipos de paths ignorados estão alinhados aos do gitleaks (fixtures, templates,
+# placeholders, docs). Secrets reais (infra/.env, .env raiz) já são gitignored.
+
+# Versão do schema
+version: 2
+
+# Paths que não devem ser scaneados — fixtures de teste, templates, exemplos
+paths-ignore:
+  # Templates de env (sem valores reais)
+  - "**/.env.example"
+  - "infra/.env.example"
+  # Testes — fixtures determinísticas (senhas dummy, JWT_SECRET de teste)
+  - "tests/**"
+  # Seed de desenvolvimento (credenciais fake locais)
+  - "scripts/seed.ts"
+  # Postman collection (valores de teste manual)
+  - "controle-de-acesso.postman_collection.json"
+  # Documentação (exemplos didáticos)
+  - "docs/**"
+  - "README.md"
+  - ".claude/**"
+
+# Findings específicos (fingerprints conhecidos) que são false-positives.
+# Quando GitGuardian flagar algo legítimo no futuro, NUNCA adicionar aqui sem
+# rotacionar o secret e validar que é mesmo fake.
+secret:
+  # Mantém os modelos ativados; templates ${VAR} são descartados naturalmente.
+  ignored-detectors: []
+
+# Política
+policies:
+  fail:
+    # Falha o scan no CI se algum secret REAL for detectado fora dos paths-ignore.
+    - "secret-detection"
