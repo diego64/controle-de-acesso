@@ -1,27 +1,21 @@
-# ─── AMBIENTE ─────────────────────────────────────────────────────────────
 .env
 .env.local
 .env.test
 .env.*.local
 
-# ─── CLAUDE (contexto local, não commitar) ────────────────────────────────
 CLAUDE.md
 CLAUDE.local.md
 .claude/settings.local.json
-.claude
+.claude/
 
-# ─── DEPENDÊNCIAS ─────────────────────────────────────────────────────────
 node_modules/
 
-# ─── BUILD ────────────────────────────────────────────────────────────────
 dist/
 .vercel/
 
-# ─── TESTES ───────────────────────────────────────────────────────────────
 coverage/
 .vitest-results/
 
-# ─── OS / EDITOR ──────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 .vscode/settings.json
@@ -29,6 +23,5 @@ Thumbs.db
 *.swp
 *.swo
 
-# ─── LOGS ─────────────────────────────────────────────────────────────────
 *.log
 logs/
