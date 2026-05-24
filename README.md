@@ -2,11 +2,6 @@
 
 API de **autenticação e controle de acesso** com JWT, roles (`ADMINISTRADOR` / `USUARIO`), blocklist Redis para logout e observabilidade completa.
 
-[![CI](https://github.com/diego64/controle-de-acesso/actions/workflows/ci.yml/badge.svg)](https://github.com/diego64/controle-de-acesso/actions/workflows/ci.yml)
-![Node 20 LTS](https://img.shields.io/badge/node-20%20LTS-43853d)
-![Fastify 5](https://img.shields.io/badge/fastify-5.x-000000)
-![TypeScript strict](https://img.shields.io/badge/typescript-5.x%20strict-3178c6)
-
 ---
 
 ## Sumário
@@ -403,9 +398,8 @@ Mais cenários e diagnose: [`docs/runbooks/`](./docs/runbooks/).
 ## Para contribuir
 
 1. Branch a partir de `main`: `git checkout -b feat/<escopo>/<descricao>`.
-2. Siga as rules em [`.claude/rules/`](./.claude/rules/) — especialmente [`git.md`](./.claude/rules/git.md) para conventional commits (`feat(auth): ...`, `chore(infra): ...`).
-3. `pnpm install` ativa husky → pre-commit roda `lint-staged + type-check`; commit-msg valida formato.
-4. PR com [`/pr-describe`](./docs/runbooks/README.md) preencho descrição padronizada.
-5. CI roda em GitHub Actions (`.github/workflows/`).
+2. `pnpm install` ativa husky → pre-commit roda `lint-staged + type-check`; commit-msg valida formato.
+3. PR com [`/pr-describe`](./docs/runbooks/README.md) preencho descrição padronizada.
+4. CI roda em GitHub Actions (`.github/workflows/`).
 
 Convenções completas em [`CLAUDE.md`](./CLAUDE.md).
