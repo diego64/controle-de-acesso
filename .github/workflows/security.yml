@@ -5,7 +5,7 @@ on:
     branches: [main, develop]
   schedule:
     # Roda toda segunda às 08:00 BRT (11:00 UTC)
-    - cron: '0 11 * * 1'
+    - cron: "0 11 * * 1"
 
 jobs:
   audit:
@@ -16,14 +16,14 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@fe02b74ab2bfcd44c1201fcf7b38587671ea5f1e
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
-          version: '9'
+          version: "9"
 
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '20'
+          node-version: "20"
           cache: pnpm
 
       - name: Install dependencies
