@@ -17,7 +17,8 @@ API de **autenticação e controle de acesso** com JWT, roles (`ADMINISTRADOR` /
 9. [Testes](#testes)
 10. [Decisões de arquitetura (ADRs)](#decisões-de-arquitetura-adrs)
 11. [Segurança](#segurança)
-12. [Troubleshooting](#troubleshooting)
+12. [Deploy](#deploy)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -393,6 +394,26 @@ Mitigação documentada em [`docs/security.md`](./docs/security.md):
 
 - `trustProxy: true` precisa whitelist explícita antes de prod.
 - `CastError` em `findById` com `sub` inválido → 500 (deveria 401) — runbook em `docs/runbooks/slo-error-rate-high.md`.
+
+---
+
+## Deploy
+
+API roda em **Vercel Serverless** (ADR-004) com **MongoDB Atlas** + **Upstash Redis**. Configuração técnica já inclusa no repo:
+
+- `vercel.json` — runtime, build, rewrites, region
+- `api/index.ts` — entry serverless com app cacheado (Fastify `server.emit`)
+- `.vercelignore` — exclui infra Docker, docs, testes do bundle
+
+Guia step-by-step: [`docs/deploy.md`](./docs/deploy.md).
+
+Resumo do fluxo:
+
+1. **Atlas:** criar cluster M0, user `ca_app`, whitelist `0.0.0.0/0`, copiar URI.
+2. **Upstash:** criar Redis regional (sa-east-1), copiar URL (TLS `rediss://`).
+3. **Vercel:** importar repo, cadastrar 11 env vars (lista em `docs/deploy.md#3.2`), deploy.
+4. **Smoke:** `curl /health/ready` deve voltar `{mongodb: ok, redis: ok}`.
+5. **Primeiro admin:** promover via `mongosh` direto no Atlas (sem endpoint — decisão de segurança).
 
 ---
 

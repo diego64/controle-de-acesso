@@ -1,0 +1,52 @@
+# Local env / secrets (não devem cruzar pro Vercel)
+.env
+.env.*
+infra/.env
+infra/.env.*
+
+# VCS / GitHub
+.git
+.github
+
+# Infra Docker (só pra dev local — Vercel é serverless)
+infra/Dockerfile
+infra/docker-compose.yml
+infra/prometheus.yml
+infra/grafana
+
+# Testes (não rodam no Vercel)
+tests
+vitest.config.ts
+vitest.workspace.ts
+
+# Docs (não fazem parte da app)
+docs
+README.md
+CLAUDE.md
+CLAUDE.local.md
+GIT-SETUP.md
+package.scripts.json
+controle-de-acesso.postman_collection.json
+
+# Tooling local
+.husky
+.commitlintrc.json
+.lintstagedrc.json
+.gitleaks.toml
+.gitguardian.yml
+.eslintrc.json
+.eslintignore
+eslint.config.js
+
+# Build caches
+coverage
+.vitest-results
+
+# OS / editor
+.DS_Store
+*.swp
+.idea
+.vscode
+
+# Claude Code (local-only)
+.claude
