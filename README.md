@@ -34,8 +34,6 @@ API de **autenticação e controle de acesso** com JWT, roles (`ADMINISTRADOR` /
 | Readiness probe (Mongo + Redis)                   | `GET /health/ready`   | público | —                 |
 | Métricas Prometheus                               | `GET /metrics`        | público | —                 |
 
-**Escopo fechado:** nada além disso. Sem refresh tokens, sem CRUD de usuários, sem federação. Documentado em [CLAUDE.md](./CLAUDE.md).
-
 ---
 
 ## Stack
