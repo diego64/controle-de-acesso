@@ -5,7 +5,7 @@
   "description": "API de autenticação e controle de acesso — Fastify + Mongoose + Redis",
   "type": "module",
   "engines": {
-    "node": "20.x"
+    "node": "22.x"
   },
   "packageManager": "pnpm@9.0.0",
   "scripts": {

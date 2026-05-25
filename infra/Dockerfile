@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # ─── Stage 1: builder ──────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Pular o download do binário do mongodb-memory-server (só para testes; ~70MB)
 ENV MONGOMS_DISABLE_POSTINSTALL=1
@@ -22,7 +22,7 @@ COPY src ./src
 RUN pnpm build
 
 # ─── Stage 2: runner ───────────────────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 
 ENV NODE_ENV=production
 ENV MONGOMS_DISABLE_POSTINSTALL=1

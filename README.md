@@ -41,7 +41,7 @@ API de **autenticação e controle de acesso** com JWT, roles (`ADMINISTRADOR` /
 
 | Camada      | Tech                                                                           |
 | ----------- | ------------------------------------------------------------------------------ |
-| Runtime     | Node.js 20 LTS                                                                 |
+| Runtime     | Node.js 22 LTS                                                                 |
 | Linguagem   | TypeScript 5 strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) |
 | HTTP        | Fastify 5                                                                      |
 | ODM         | Mongoose 9                                                                     |
