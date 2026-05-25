@@ -15,3 +15,17 @@ scrape_configs:
   - job_name: mongodb
     static_configs:
       - targets: ["mongodb-exporter:9216"]
+
+  # ─── Produção (Vercel Serverless) ────────────────────────────────────────
+  # Scrape direto do /metrics público do app em produção. Cada cold-start
+  # reinicia os counters; gauges (process_*, nodejs_*) refletem o instance
+  # atual atendendo a request. Para métricas agregadas reais em prod,
+  # considerar Grafana Cloud + push (Vercel não permite Prometheus pull
+  # tradicional em ambiente serverless com múltiplas instâncias).
+  - job_name: controle-de-acesso-prod
+    scheme: https
+    scrape_interval: 30s
+    scrape_timeout: 25s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["controle-de-acesso-pi.vercel.app"]

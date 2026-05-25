@@ -22,11 +22,11 @@
     {
       "id": 1,
       "type": "text",
-      "title": "Setup pendente",
+      "title": "Produção — Vercel Serverless",
       "gridPos": { "x": 0, "y": 0, "w": 24, "h": 3 },
       "options": {
         "mode": "markdown",
-        "content": "**Datasource `Prometheus-Cloud` aponta para placeholder.** Configure `GRAFANA_CLOUD_PROMETHEUS_URL` em `infra/.env` (e basicAuth se aplicável em `infra/grafana/provisioning/datasources/prometheus.yml`) e recarregue o Grafana."
+        "content": "Scrape direto de `https://controle-de-acesso-pi.vercel.app/metrics` via job `controle-de-acesso-prod` no Prometheus local. Como Vercel roda múltiplas instâncias serverless, gauges (memória/CPU) refletem a instância que respondeu ao último scrape. Counters reiniciam a cada cold-start."
       }
     },
     {
@@ -36,7 +36,11 @@
       "datasource": { "type": "prometheus", "uid": "prom-cloud" },
       "gridPos": { "x": 0, "y": 3, "w": 6, "h": 4 },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
         "orientation": "horizontal",
         "textMode": "auto",
         "colorMode": "value",
@@ -57,7 +61,11 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "count(up == 1)", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "count(up{job=\"controle-de-acesso-prod\"} == 1)",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -67,7 +75,11 @@
       "datasource": { "type": "prometheus", "uid": "prom-cloud" },
       "gridPos": { "x": 6, "y": 3, "w": 6, "h": 4 },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
         "orientation": "horizontal",
         "textMode": "auto",
         "colorMode": "value",
@@ -88,7 +100,11 @@
         "overrides": []
       },
       "targets": [
-        { "expr": "count(up == 0) OR on() vector(0)", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "count(up{job=\"controle-de-acesso-prod\"} == 0) OR on() vector(0)",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -106,16 +122,35 @@
         "defaults": {
           "custom": { "align": "auto", "displayMode": "auto" },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "DOWN", "color": "red" },
+                "1": { "text": "UP", "color": "green" }
+              }
+            }
           ]
         },
         "overrides": []
       },
       "targets": [
-        { "expr": "up", "refId": "A", "instant": true, "format": "table", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "up{job=\"controle-de-acesso-prod\"}",
+          "refId": "A",
+          "instant": true,
+          "format": "table",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ],
       "transformations": [
-        { "id": "organize", "options": { "excludeByName": { "Time": true, "__name__": true }, "indexByName": {}, "renameByName": { "Value": "Status" } } }
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "__name__": true },
+            "indexByName": {},
+            "renameByName": { "Value": "Status" }
+          }
+        }
       ]
     },
     {
@@ -127,17 +162,31 @@
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 10, "spanNulls": false },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          },
           "color": { "mode": "palette-classic" }
         },
         "overrides": []
       },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "targets": [
-        { "expr": "scrape_duration_seconds", "refId": "A", "legendFormat": "{{job}} / {{instance}}", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "scrape_duration_seconds{job=\"controle-de-acesso-prod\"}",
+          "refId": "A",
+          "legendFormat": "{{instance}}",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -149,17 +198,31 @@
       "fieldConfig": {
         "defaults": {
           "unit": "decbytes",
-          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 20, "spanNulls": false },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 20,
+            "spanNulls": false
+          },
           "color": { "mode": "palette-classic" }
         },
         "overrides": []
       },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "targets": [
-        { "expr": "process_resident_memory_bytes", "refId": "A", "legendFormat": "{{job}}", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "process_resident_memory_bytes{job=\"controle-de-acesso-prod\"}",
+          "refId": "A",
+          "legendFormat": "{{instance}}",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -178,10 +241,19 @@
       },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "targets": [
-        { "expr": "rate(process_cpu_seconds_total[1m])", "refId": "A", "legendFormat": "{{job}}", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "rate(process_cpu_seconds_total{job=\"controle-de-acesso-prod\"}[1m])",
+          "refId": "A",
+          "legendFormat": "{{instance}}",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     }
   ]

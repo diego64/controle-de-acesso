@@ -110,8 +110,6 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER é obrigatório}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD é obrigatório}
-      # Datasource Cloud é placeholder; defina abaixo p/ apontar para Prometheus cloud real
-      GRAFANA_CLOUD_PROMETHEUS_URL: ${GRAFANA_CLOUD_PROMETHEUS_URL:-http://prometheus-cloud-placeholder:9090}
       ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-http://localhost:9999/alerts}
       # Permite ${VAR:default} nos YAML de provisioning
       GF_DEFAULT_INSTANCE_NAME: ca-grafana

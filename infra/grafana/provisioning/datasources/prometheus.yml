@@ -13,21 +13,19 @@ datasources:
       timeInterval: 15s
       httpMethod: POST
 
-  # ─── Cloud — placeholder; configurar via env ou via UI ──────────────────
-  # Para apontar para uma instância real (ex.: Grafana Cloud, AMP, Chronosphere):
-  #   export GRAFANA_CLOUD_PROMETHEUS_URL=https://prometheus-prod-X.grafana.net/api/prom
-  # e (se aplicável) descomentar o bloco basicAuth.
+  # ─── Cloud — mesmo Prometheus local, mas para os dashboards cloud/ ──────
+  # Mantemos um datasource separado (com timeInterval maior, alinhado ao
+  # scrape_interval 30s do job controle-de-acesso-prod) para que os
+  # dashboards da pasta cloud/ tenham configuração visual distinta.
+  # Os dados de produção vivem no mesmo Prometheus local — separação
+  # acontece via label `job` nas queries (`job="controle-de-acesso-prod"`).
   - name: Prometheus-Cloud
     uid: prom-cloud
     type: prometheus
     access: proxy
-    url: ${GRAFANA_CLOUD_PROMETHEUS_URL}
+    url: http://prometheus:9090
     isDefault: false
     editable: true
     jsonData:
       timeInterval: 30s
       httpMethod: POST
-    # basicAuth: true
-    # basicAuthUser: ${GRAFANA_CLOUD_PROMETHEUS_USER}
-    # secureJsonData:
-    #   basicAuthPassword: ${GRAFANA_CLOUD_PROMETHEUS_PASSWORD}
