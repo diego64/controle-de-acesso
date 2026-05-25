@@ -26,7 +26,7 @@
       "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 },
       "options": {
         "mode": "markdown",
-        "content": "| Métrica | Objetivo |\n|---|---|\n| Disponibilidade | **99.5% mensal** |\n| Latência p95 login | **< 300ms** |\n| Latência p95 register | **< 500ms** |\n| Taxa de erro 5xx | **< 0.5%** |\n\n**Datasource Cloud** — assume Prometheus cloud já configurado via `GRAFANA_CLOUD_PROMETHEUS_URL`. Painéis ficam em `—` enquanto o scrape do app cloud não estiver ativo."
+        "content": "| Métrica | Objetivo |\n|---|---|\n| Disponibilidade | **99.5% mensal** |\n| Latência p95 login | **< 300ms** |\n| Latência p95 register | **< 500ms** |\n| Taxa de erro 5xx | **< 0.5%** |\n\nQueries filtram por `job=\"controle-de-acesso-prod\"` (scrape de `https://controle-de-acesso-pi.vercel.app/metrics`). Em serverless, p95 reflete só requests servidas entre cold-starts — cada nova instância zera os histogramas."
       }
     },
     {
@@ -36,7 +36,11 @@
       "datasource": { "type": "prometheus", "uid": "prom-cloud" },
       "gridPos": { "x": 0, "y": 4, "w": 6, "h": 5 },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
         "orientation": "horizontal",
         "textMode": "value",
         "colorMode": "value",
@@ -49,13 +53,24 @@
           "min": 0,
           "max": 100,
           "decimals": 3,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "orange", "value": 99 }, { "color": "green", "value": 99.5 }] },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 99 },
+              { "color": "green", "value": 99.5 }
+            ]
+          },
           "noValue": "—"
         },
         "overrides": []
       },
       "targets": [
-        { "expr": "avg_over_time(up{job=\"controle-de-acesso\"}[$__range]) * 100", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "avg_over_time(up{job=\"controle-de-acesso-prod\"}[$__range]) * 100",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -65,7 +80,11 @@
       "datasource": { "type": "prometheus", "uid": "prom-cloud" },
       "gridPos": { "x": 6, "y": 4, "w": 6, "h": 5 },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
         "orientation": "horizontal",
         "textMode": "value",
         "colorMode": "value",
@@ -76,13 +95,24 @@
         "defaults": {
           "unit": "s",
           "decimals": 3,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.2 }, { "color": "red", "value": 0.3 }] },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.2 },
+              { "color": "red", "value": 0.3 }
+            ]
+          },
           "noValue": "—"
         },
         "overrides": []
       },
       "targets": [
-        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=\"/auth/login\"}[5m])) by (le))", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"controle-de-acesso-prod\",route=\"/auth/login\"}[5m])) by (le))",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -92,7 +122,11 @@
       "datasource": { "type": "prometheus", "uid": "prom-cloud" },
       "gridPos": { "x": 12, "y": 4, "w": 6, "h": 5 },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
         "orientation": "horizontal",
         "textMode": "value",
         "colorMode": "value",
@@ -103,13 +137,24 @@
         "defaults": {
           "unit": "s",
           "decimals": 3,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.35 }, { "color": "red", "value": 0.5 }] },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.35 },
+              { "color": "red", "value": 0.5 }
+            ]
+          },
           "noValue": "—"
         },
         "overrides": []
       },
       "targets": [
-        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{route=\"/auth/register\"}[5m])) by (le))", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"controle-de-acesso-prod\",route=\"/auth/register\"}[5m])) by (le))",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -119,7 +164,11 @@
       "datasource": { "type": "prometheus", "uid": "prom-cloud" },
       "gridPos": { "x": 18, "y": 4, "w": 6, "h": 5 },
       "options": {
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
         "orientation": "horizontal",
         "textMode": "value",
         "colorMode": "value",
@@ -130,13 +179,24 @@
         "defaults": {
           "unit": "percent",
           "decimals": 3,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.3 }, { "color": "red", "value": 0.5 }] },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.3 },
+              { "color": "red", "value": 0.5 }
+            ]
+          },
           "noValue": "0"
         },
         "overrides": []
       },
       "targets": [
-        { "expr": "(sum(rate(http_request_duration_seconds_count{status_code=~\"5..\"}[5m])) OR on() vector(0)) / clamp_min(sum(rate(http_request_duration_seconds_count[5m])), 1) * 100", "refId": "A", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "(sum(rate(http_request_duration_seconds_count{job=\"controle-de-acesso-prod\",status_code=~\"5..\"}[5m])) OR on() vector(0)) / clamp_min(sum(rate(http_request_duration_seconds_count{job=\"controle-de-acesso-prod\"}[5m])), 1) * 100",
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -148,20 +208,55 @@
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10, "spanNulls": false },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "spanNulls": false
+          },
           "color": { "mode": "palette-classic" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.3 }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.3 }
+            ]
+          }
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "/auth/register" }, "properties": [{ "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.5 }] } }] }
+          {
+            "matcher": { "id": "byName", "options": "/auth/register" },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "green", "value": null },
+                    { "color": "red", "value": 0.5 }
+                  ]
+                }
+              }
+            ]
+          }
         ]
       },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": ["mean", "max"]
+        }
       },
       "targets": [
-        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route))", "refId": "A", "legendFormat": "{{route}}", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"controle-de-acesso-prod\"}[5m])) by (le, route))",
+          "refId": "A",
+          "legendFormat": "{{route}}",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -173,17 +268,33 @@
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "line", "lineWidth": 1, "fillOpacity": 15, "spanNulls": false, "stacking": { "mode": "normal", "group": "A" } },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 15,
+            "spanNulls": false,
+            "stacking": { "mode": "normal", "group": "A" }
+          },
           "color": { "mode": "palette-classic" }
         },
         "overrides": []
       },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"] }
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true,
+          "calcs": ["mean", "max"]
+        }
       },
       "targets": [
-        { "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (route)", "refId": "A", "legendFormat": "{{route}}", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "sum(rate(http_request_duration_seconds_count{job=\"controle-de-acesso-prod\"}[1m])) by (route)",
+          "refId": "A",
+          "legendFormat": "{{route}}",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -195,22 +306,69 @@
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "custom": { "drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "spanNulls": false, "stacking": { "mode": "normal", "group": "A" } },
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "spanNulls": false,
+            "stacking": { "mode": "normal", "group": "A" }
+          },
           "color": { "mode": "palette-classic" }
         },
         "overrides": [
-          { "matcher": { "id": "byRegexp", "options": "^2.." }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
-          { "matcher": { "id": "byRegexp", "options": "^3.." }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
-          { "matcher": { "id": "byRegexp", "options": "^4.." }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] },
-          { "matcher": { "id": "byRegexp", "options": "^5.." }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+          {
+            "matcher": { "id": "byRegexp", "options": "^2.." },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "mode": "fixed", "fixedColor": "green" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "^3.." },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "mode": "fixed", "fixedColor": "blue" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "^4.." },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "mode": "fixed", "fixedColor": "yellow" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": "^5.." },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "mode": "fixed", "fixedColor": "red" }
+              }
+            ]
+          }
         ]
       },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "targets": [
-        { "expr": "sum(rate(http_request_duration_seconds_count[1m])) by (status_code)", "refId": "A", "legendFormat": "{{status_code}}", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "sum(rate(http_request_duration_seconds_count{job=\"controle-de-acesso-prod\"}[1m])) by (status_code)",
+          "refId": "A",
+          "legendFormat": "{{status_code}}",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -223,18 +381,39 @@
         "defaults": {
           "unit": "percent",
           "decimals": 3,
-          "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "spanNulls": false, "thresholdsStyle": { "mode": "line" } },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 0.5 }] },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 25,
+            "spanNulls": false,
+            "thresholdsStyle": { "mode": "line" }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 0.5 }
+            ]
+          },
           "color": { "mode": "thresholds" }
         },
         "overrides": []
       },
       "options": {
         "tooltip": { "mode": "single", "sort": "desc" },
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true }
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
       },
       "targets": [
-        { "expr": "(sum(rate(http_request_duration_seconds_count{status_code=~\"5..\"}[5m])) OR on() vector(0)) / clamp_min(sum(rate(http_request_duration_seconds_count[5m])), 1) * 100", "refId": "A", "legendFormat": "5xx %", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "(sum(rate(http_request_duration_seconds_count{job=\"controle-de-acesso-prod\",status_code=~\"5..\"}[5m])) OR on() vector(0)) / clamp_min(sum(rate(http_request_duration_seconds_count{job=\"controle-de-acesso-prod\"}[5m])), 1) * 100",
+          "refId": "A",
+          "legendFormat": "5xx %",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ]
     },
     {
@@ -255,14 +434,42 @@
           "mappings": []
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "p95 (s)" }, "properties": [{ "id": "unit", "value": "s" }, { "id": "decimals", "value": 3 }] }
+          {
+            "matcher": { "id": "byName", "options": "p95 (s)" },
+            "properties": [
+              { "id": "unit", "value": "s" },
+              { "id": "decimals", "value": 3 }
+            ]
+          }
         ]
       },
       "targets": [
-        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route, method))", "refId": "A", "instant": true, "format": "table", "datasource": { "type": "prometheus", "uid": "prom-cloud" } }
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"controle-de-acesso-prod\"}[5m])) by (le, route, method))",
+          "refId": "A",
+          "instant": true,
+          "format": "table",
+          "datasource": { "type": "prometheus", "uid": "prom-cloud" }
+        }
       ],
       "transformations": [
-        { "id": "organize", "options": { "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true }, "indexByName": {}, "renameByName": { "Value": "p95 (s)", "route": "Rota", "method": "Método" } } }
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true,
+              "job": true,
+              "instance": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "Value": "p95 (s)",
+              "route": "Rota",
+              "method": "Método"
+            }
+          }
+        }
       ]
     }
   ]

@@ -24,3 +24,8 @@ Thumbs.db
 
 *.log
 logs/
+.vercel
+
+# Postman collections que apontam para produção (contêm URLs/creds reais)
+*.prod.postman_collection.json
+*.production.postman_collection.json
