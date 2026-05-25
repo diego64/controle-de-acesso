@@ -55,12 +55,12 @@ Tempo total estimado: **20–30 min** (somente cliques de UI, sem código).
 1. Sidebar **Database → Connect → Drivers → Node.js**.
 2. Copie a URI no formato:
    ```
-   mongodb+srv://ca_app:<password>@controle-de-acesso-prod.xxxxx.mongodb.net/?retryWrites=true&w=majority
+   mongodb+srv://USERNAME:PASSWORD@CLUSTER-URL/?retryWrites=true&w=majority
    ```
 3. Substitua `<password>` pela senha gerada no 1.2.
 4. Adicione o nome do DB antes do `?`:
    ```
-   mongodb+srv://ca_app:<password>@controle-de-acesso-prod.xxxxx.mongodb.net/controle-de-acesso?retryWrites=true&w=majority
+   mongodb+srv://USERNAME:PASSWORD@CLUSTER-URL/controle-de-acesso?retryWrites=true&w=majority
    ```
 
 Guarde como **`MONGODB_URI`**.
@@ -84,7 +84,7 @@ Guarde como **`MONGODB_URI`**.
 Na página do DB criado, copie o campo **Endpoint** (formato Redis URL):
 
 ```
-rediss://default:<TOKEN>@controle-de-acesso-blocklist-xxxxx.upstash.io:6379
+rediss://default:TOKEN@HOSTNAME.upstash.io:6379
 ```
 
 Note: protocolo é **`rediss://`** (com 2 `s` — TLS). O ioredis aceita TLS automaticamente quando vê esse scheme.
@@ -173,7 +173,7 @@ A API **não expõe endpoint** para promover usuários a `ADMINISTRADOR` (decis�
 ```bash
 # Instalar mongosh local ou usar via Docker
 docker run --rm -it mongo:7 mongosh \
-  "mongodb+srv://ca_app:<password>@controle-de-acesso-prod.xxxxx.mongodb.net/controle-de-acesso?retryWrites=true&w=majority" \
+  "mongodb+srv://USERNAME:PASSWORD@CLUSTER-URL/controle-de-acesso?retryWrites=true&w=majority" \
   --eval 'db.users.updateOne({email:"voce@empresa.com"},{$set:{role:"ADMINISTRADOR"}})'
 ```
 
