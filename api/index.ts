@@ -5,7 +5,10 @@
 // Padrão recomendado pela Fastify (https://fastify.dev/docs/latest/Guides/Serverless/):
 // cachear o app entre invocações pra amortizar o custo de boot.
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { buildApp } from '../src/app.js'
+// Importa do dist/ (não src/) — tsc-alias já reescreveu os `@/...` aliases
+// em paths relativos. @vercel/node não aplica tsconfig#paths quando compila
+// nossas sources direto, então usar dist/ é mandatório aqui.
+import { buildApp } from '../dist/app.js'
 
 // Promise cacheada — primeira invocação paga o cold start (mongoose connect,
 // redis ping, prom-client register, DUMMY_PASSWORD_HASH ~100ms). Subsequentes
